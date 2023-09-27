@@ -1,21 +1,21 @@
-type Colony @entity {
-  id: ID! # <colonyAddress>
-  ensName: String
-  orbitAddress: String
-  colonyChainId: BigInt!
-  token: Token
-  domains: [Domain!]! @derivedFrom(field: "colony")
-  metadata: String
-  metadataHistory: [ColonyMetadata!]! @derivedFrom(field: "colony")
-  extensions: [ColonyExtension!] @derivedFrom(field: "colony")
-}
+# type Colony @entity {
+#   id: ID! # <colonyAddress>
+#   ensName: String
+#   orbitAddress: String
+#   colonyChainId: BigInt!
+#   # token: Token
+#   domains: [Domain!]! @derivedFrom(field: "colony")
+#   # metadata: String
+#   # metadataHistory: [ColonyMetadata!]! @derivedFrom(field: "colony")
+#   # extensions: [ColonyExtension!] @derivedFrom(field: "colony")
+# }
 
-type ColonyMetadata @entity {
-  id: ID! # <colonyAddress>_<transactionHash>_<logId>
-  colony: Colony!
-  transaction: Transaction!
-  metadata: String
-}
+# type ColonyMetadata @entity {
+#   id: ID! # <colonyAddress>_<transactionHash>_<logId>
+#   colony: Colony!
+#   transaction: Transaction!
+#   metadata: String
+# }
 
 type Domain @entity {
   id: ID! # <colonyAddress>_domain_<domainId>
@@ -23,69 +23,69 @@ type Domain @entity {
   parent: Domain
   name: String
   colonyAddress: String
-  metadata: String
-  metadataHistory: [DomainMetadata!]! @derivedFrom(field: "domain")
-  skill: GlobalSkill
-  colony: Colony!
+  # metadata: String
+  # metadataHistory: [DomainMetadata!]! @derivedFrom(field: "domain")
+  # skill: GlobalSkill
+  # colony: Colony!
 }
 
-type DomainMetadata @entity {
-  id: ID! # colonyAddress_<domainId>_<transactionHash>_<logId>
-  domain: Domain!
-  transaction: Transaction!
-  metadata: String
-}
+# type DomainMetadata @entity {
+#   id: ID! # colonyAddress_<domainId>_<transactionHash>_<logId>
+#   domain: Domain!
+#   transaction: Transaction!
+#   metadata: String
+# }
 
-type GlobalSkill @entity {
-  id: ID! # global_skill_<skillChainId>
-  skillChainId: BigInt!
-  parent: GlobalSkill
-  domainId: ID # domain id following the above listed domain id format
-}
+# type GlobalSkill @entity {
+#   id: ID! # global_skill_<skillChainId>
+#   skillChainId: BigInt!
+#   parent: GlobalSkill
+#   domainId: ID # domain id following the above listed domain id format
+# }
 
-type Payment @entity {
-  id: ID!
-  domain: Domain
-  colony: Colony
-  to: String
-  fundingPot: FundingPot
-  paymentChainId: BigInt
-}
+# type Payment @entity {
+#   id: ID!
+#   domain: Domain
+#   colony: Colony
+#   to: String
+#   fundingPot: FundingPot
+#   paymentChainId: BigInt
+# }
 
-type Expenditure @entity {
-  id: ID!
-}
+# type Expenditure @entity {
+#   id: ID!
+# }
 
-type OneTxPayment @entity {
-  id: ID! #<colonyAddress>_oneTxPayment_<noOfPayouts>_<PayoutId> (payout id is left zero padded to 18 chars)
-  domain: Domain
-  fundamentalChainId: BigInt
-  timestamp: BigInt
-  nPayouts: BigInt
-  agent: String
-  transaction: Transaction
-  expenditure: Expenditure
-  payment: Payment
-}
+# type OneTxPayment @entity {
+#   id: ID! #<colonyAddress>_oneTxPayment_<noOfPayouts>_<PayoutId> (payout id is left zero padded to 18 chars)
+#   domain: Domain
+#   fundamentalChainId: BigInt
+#   timestamp: BigInt
+#   nPayouts: BigInt
+#   agent: String
+#   transaction: Transaction
+#   expenditure: Expenditure
+#   payment: Payment
+# }
 
-type Token @entity {
-  id: ID!
-  decimals: BigInt
-  symbol: String
-}
+# type Token @entity {
+#   id: ID!
+#   decimals: BigInt
+#   symbol: String
+# }
 
-type FundingPot @entity {
-  id: ID!
-  fundingPotPayouts: [FundingPotPayout!]! @derivedFrom(field: "fundingPot") 
-}
+# type FundingPot @entity {
+#   id: ID!
+#   fundingPotPayouts: [FundingPotPayout!]! @derivedFrom(field: "fundingPot")
+# }
 
-type FundingPotPayout @entity {
-  id: ID! # <colonyAddress>_fundingpot_<fundingPotId>_<tokenAddress>
-  token: Token
-  amount: BigInt
-  fundingPotChainId: BigInt
-  fundingPot: FundingPot!
-}
+# type FundingPotPayout @entity {
+#   id: ID! # <colonyAddress>_fundingpot_<fundingPotId>_<tokenAddress>
+#   token: Token
+#   amount: BigInt
+#   fundingPotChainId: BigInt
+#   fundingPot: FundingPot!
+# }
 
 type Transaction @entity {
   id: ID!
@@ -99,40 +99,40 @@ type Block @entity {
 
 type Event @entity {
   id: ID! # <globalEventCount>_<txHash>_event_<logIndex> (event count is left zero padded to 18 chars)
-  domain: Domain
+  # domain: Domain
   timestamp: BigInt
   transaction: Transaction
   address: String
-  associatedColony: Colony
+  # associatedColony: Colony
   name: String
   args: String
 }
 
-type ColonyExtension @entity {
-  id: ID! # <extensionAddress>
-  colony: Colony!
-  hash: String!
-}
+# type ColonyExtension @entity {
+#   id: ID! # <extensionAddress>
+#   colony: Colony!
+#   hash: String!
+# }
 
-type Motion @entity {
-  id: ID! # <colonyAddress>_motion_<extensionAddress>_<motionId> (motion id is left zero padded to 18 chars)
-  fundamentalChainId: BigInt
-  action: String
-  extensionAddress: String
-  associatedColony: Colony
-  transaction: Transaction
-  agent: String
-  domain: Domain
-  stakes: [String!]
-  requiredStake: BigInt
-  escalated: Boolean
-  timestamp: BigInt
-}
+# type Motion @entity {
+#   id: ID! # <colonyAddress>_motion_<extensionAddress>_<motionId> (motion id is left zero padded to 18 chars)
+#   fundamentalChainId: BigInt
+#   action: String
+#   extensionAddress: String
+#   associatedColony: Colony
+#   transaction: Transaction
+#   agent: String
+#   domain: Domain
+#   stakes: [String!]
+#   requiredStake: BigInt
+#   escalated: Boolean
+#   timestamp: BigInt
+# }
 
-type CoinMachinePeriod @entity {
-  id: ID! # <colonyAddress>_coinMachine_<extensionAddress>_<saleEnd>
-  saleEndedAt: BigInt!
-  colonyAddress: String!
-  tokensBought: BigInt
-  price: BigInt
-}
+# type CoinMachinePeriod @entity {
+#   id: ID! # <colonyAddress>_coinMachine_<extensionAddress>_<saleEnd>
+#   saleEndedAt: BigInt!
+#   colonyAddress: String!
+#   tokensBought: BigInt
+#   price: BigInt
+# }
