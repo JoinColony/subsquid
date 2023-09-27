@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src"],
+  "include": ["src", "src/abi"],
   "exclude": [
     "node_modules"
   ]
