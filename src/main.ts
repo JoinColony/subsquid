@@ -3,6 +3,7 @@ import {Store, TypeormDatabase} from '@subsquid/typeorm-store'
 // import { Domain, Colony } from './model'
 // import { DataHandlerContext, Log } from '@subsquid/evm-processor'
 
+import { Log } from './types';
 import { processor } from './processor'
 
 import { events as ColonyEvents } from './abi/IColony';
@@ -14,7 +15,7 @@ import {
 
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) => {
   for (const block of context.blocks) {
-    for (const log of block.logs) {
+    for (const log of block.logs as Array<Log>) {
       const [topic] = log.topics;
       if (topic) {
         switch (topic) {

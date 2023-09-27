@@ -1,10 +1,12 @@
-import { DataHandlerContext, Log } from '@subsquid/evm-processor'
+import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
+
 import { Event, Block, Transaction } from '../../model'
+import { Log } from '../../types';
 
 const handleEvent = async (
   context: DataHandlerContext<Store, {}>,
-  log: Log & { transactionHash: string; logIndex: number; },
+  log: Log,
   decodedLog: any,
   eventName: string,
 ) => {

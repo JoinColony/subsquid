@@ -1,16 +1,18 @@
-import { DataHandlerContext, Log } from '@subsquid/evm-processor'
-import { Store, TypeormDatabase } from '@subsquid/typeorm-store'
+import { DataHandlerContext } from '@subsquid/evm-processor'
+import { Store } from '@subsquid/typeorm-store'
 
 import handleEvent from '../events';
-
 import { Domain } from '../../model'
+import { Log } from '../../types';
+
 import { events as ColonyEvents, Contract as ColonyContract } from '../../abi/IColony';
 
 export const handleDomainAdded = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,
 ) => {
-  const event = ColonyEvents['DomainAdded(address,uint256)'].decode(log);
+  const eventSignature = 'DomainAdded(address,uint256)';
+  const event = ColonyEvents[eventSignature].decode(log);
 
   if (!event) {
     return;
@@ -31,9 +33,9 @@ export const handleDomainAdded = async (
 
   //  save domain to db
   await context.store.insert(domain)
-  // todo: handle event
 
-  await handleEvent(context, log as Log & { transactionHash: string; logIndex: number; }, event, 'DomainAdded(address,uint256)');
+  // handle the event
+  await handleEvent(context, log, event, eventSignature);
 };
 
 export const handleDomainAddedLegacy = async (
