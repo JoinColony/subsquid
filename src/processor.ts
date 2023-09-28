@@ -3,8 +3,7 @@ import {lookupArchive} from '@subsquid/archive-registry'
 import { events as colonyNetworkEvents } from './abi/IColonyNetwork';
 import { events as colonyEvents } from './abi/IColony';
 
-// export const NETWORK_CONTRACT = '0x78163f593D1Fa151B4B7cacD146586aD2b686294'.toLowerCase()
-export const NETWORK_CONTRACT = '0x5CC4a96B08e8C88f2c6FC5772496FeD9666e4D1F'.toLowerCase();
+import { COLONY_NETWORK_ADDRESS } from './utils/constants';
 
 import {
     BlockHeader,
@@ -39,7 +38,7 @@ export const processor = new EvmBatchProcessor()
       from: 1,
   })
   .addLog({
-    address: [ NETWORK_CONTRACT ],
+    address: [ COLONY_NETWORK_ADDRESS ],
     topic0: [
       ...Object.values(colonyNetworkEvents).map(entry => entry.topic),
     ],
