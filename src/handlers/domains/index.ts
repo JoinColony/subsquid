@@ -5,31 +5,43 @@ import handleEvent from '../events';
 import { Domain } from '../../model'
 import { Log } from '../../types';
 
-import { events as ColonyEvents, Contract as ColonyContract } from '../../abi/IColony';
+import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
 
 export const handleDomainAdded = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,
 ) => {
-  const eventSignature = 'DomainAdded(address,uint256)';
-  const event = ColonyEvents[eventSignature].decode(log);
+  const event = ColonyAbi.parseLog(log);
 
   if (!event) {
     return;
   }
 
-  // const colonyContract = new ColonyContract(ctx, log.block, log.address);
+  const args = event.args.toObject();
 
-  const domainSubsquidId = `${log.address.toLowerCase()}_domain_${event.domainId.toString()}`;
+  const colonyContract = new ColonyContract(context, log.block, log.address);
+
+  /*
+   * @TODO Properly fetch the domain count
+   * As-is this won't work if multiple domains (within the same colony) are created
+   * in one transaction
+   * This is only true for the "old" event signature: `DomainAdded(address)`
+   */
+  let domainChainId = args.domainId;
+  if (!domainChainId) {
+    domainChainId = await colonyContract.getDomainCount();
+  }
+
+  const domainSubsquidId = `${log.address.toLowerCase()}_domain_${domainChainId.toString()}`;
   let domain = await context.store.get(Domain, { where: { id: domainSubsquidId } });
 
   if (!domain) {
     domain = new Domain({ id: domainSubsquidId })
-    domain.domainChainId = event.domainId;
+    domain.domainChainId = domainChainId;
 
-    domain.name = `Team #${event.domainId.toString()}`;
+    domain.name = `Team #${domainChainId.toString()}`;
     domain.parent = null; // todo
-    if (event.domainId.toString() === '1') {
+    if (domainChainId.toString() === '1') {
       domain.name = `Root`;
       domain.parent = null;
     }
@@ -40,12 +52,5 @@ export const handleDomainAdded = async (
   }
 
   // handle the event
-  await handleEvent(context, log, event, eventSignature);
-};
-
-export const handleDomainAddedLegacy = async (
-  context: DataHandlerContext<Store, {}>,
-  log: Log,
-) => {
-  // do stuff for Domain Added
+  await handleEvent(context, log, event.args, event.signature);
 };

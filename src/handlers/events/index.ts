@@ -1,5 +1,6 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
+import { Result } from 'ethers';
 
 import { Event, Block, Transaction } from '../../model'
 import { Log } from '../../types';
@@ -7,7 +8,7 @@ import { Log } from '../../types';
 const handleEvent = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,
-  decodedLog: any,
+  decodedLog: Result,
   eventName: string,
 ) => {
   const event = new Event({ id: `${log.transactionHash}_event_${log.logIndex}`});

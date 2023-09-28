@@ -1,5 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
+import {Colony} from "./colony.model"
 
 @Entity_()
 export class Domain {
@@ -22,4 +23,8 @@ export class Domain {
 
     @Column_("text", {nullable: true})
     colonyAddress!: string | undefined | null
+
+    @Index_()
+    @ManyToOne_(() => Colony, {nullable: true})
+    colony!: Colony
 }

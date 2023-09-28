@@ -21,6 +21,7 @@ export type Log = _Log<Fields>
 export type Transaction = _Transaction<Fields>
 export type ProcessorContext<Store> = DataHandlerContext<Store, Fields>
 
+console.log([...Object.values(colonyNetworkEvents).map(entry => entry.topic)])
 
 export const processor = new EvmBatchProcessor()
   .setDataSource({
@@ -42,7 +43,15 @@ export const processor = new EvmBatchProcessor()
   .addLog({
     address: [ NETWORK_CONTRACT ],
     topic0: [
-      ...Object.keys(colonyNetworkEvents).map(colonyNetworkEventKey => colonyNetworkEvents[colonyNetworkEventKey as keyof typeof colonyNetworkEvents].topic),
-      ...Object.keys(colonyEvents).map(colonyEventKey => colonyEvents[colonyEventKey as keyof typeof colonyEvents].topic),
+      // colonyNetworkEvents.ColonyAdded.topic,
+      ...Object.values(colonyNetworkEvents).map(entry => entry.topic),
+      // ...Object.keys(colonyNetworkEvents).map(colonyNetworkEventKey => colonyNetworkEvents[colonyNetworkEventKey as keyof typeof colonyNetworkEvents].topic),
+      // ...Object.keys(colonyEvents).map(colonyEventKey => colonyEvents[colonyEventKey as keyof typeof colonyEvents].topic),
+    ],
+  })
+  .addLog({
+    // address: [],
+    topic0: [
+      ...Object.values(colonyEvents).map(entry => entry.topic),
     ],
   })
