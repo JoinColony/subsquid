@@ -1,4 +1,5 @@
 export * from "./colony.model"
+export * from "./colonyMetadata.model"
 export * from "./domain.model"
 export * from "./domainMetadata.model"
 export * from "./token.model"

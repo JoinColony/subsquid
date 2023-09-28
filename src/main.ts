@@ -16,7 +16,7 @@ import {
 } from './abi/IColonyNetwork';
 
 import { handleDomainAdded, handleDomainMetadata } from './handlers/domains';
-import { handleColonyAdded } from './handlers/colonies';
+import { handleColonyAdded, handleColonyMetadata } from './handlers/colonies';
 
 import handleEvent from './handlers/events';
 
@@ -44,6 +44,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case ColonyNetworkEvents.ColonyAdded.topic: {
             await handleColonyAdded(context, log);
+            break;
+          }
+          case ColonyEvents.ColonyMetadata.topic: {
+            await handleColonyMetadata(context, log);
             break;
           }
           default: {

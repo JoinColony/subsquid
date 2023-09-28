@@ -5,17 +5,17 @@ type Colony @entity {
   colonyChainId: BigInt!
   token: Token
   domains: [Domain!]! @derivedFrom(field: "colony")
-  # metadata: String
-  # metadataHistory: [ColonyMetadata!]! @derivedFrom(field: "colony")
+  metadata: String
+  metadataHistory: [ColonyMetadata!]! @derivedFrom(field: "colony")
   # extensions: [ColonyExtension!] @derivedFrom(field: "colony")
 }
 
-# type ColonyMetadata @entity {
-#   id: ID! # <colonyAddress>_<transactionHash>_<logId>
-#   colony: Colony!
-#   transaction: Transaction!
-#   metadata: String
-# }
+type ColonyMetadata @entity {
+  id: ID! # <colonyAddress>_<transactionHash>_<logId>
+  colony: Colony!
+  transaction: Transaction!
+  metadata: String
+}
 
 type Domain @entity {
   id: ID! # <colonyAddress>_domain_<domainId>

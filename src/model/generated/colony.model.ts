@@ -2,6 +2,7 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, M
 import * as marshal from "./marshal"
 import {Token} from "./token.model"
 import {Domain} from "./domain.model"
+import {ColonyMetadata} from "./colonyMetadata.model"
 
 @Entity_()
 export class Colony {
@@ -27,4 +28,10 @@ export class Colony {
 
     @OneToMany_(() => Domain, e => e.colony)
     domains!: Domain[]
+
+    @Column_("text", {nullable: true})
+    metadata!: string | undefined | null
+
+    @OneToMany_(() => ColonyMetadata, e => e.colony)
+    metadataHistory!: ColonyMetadata[]
 }
