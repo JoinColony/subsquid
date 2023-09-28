@@ -1,8 +1,7 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import handleEvent from '../events';
-import { Domain } from '../../model'
+import { Domain, Colony } from '../../model'
 import { Log } from '../../types';
 
 import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
@@ -47,10 +46,12 @@ export const handleDomainAdded = async (
     }
     domain.colonyAddress = log.address.toLowerCase();
 
+    const colony = await context.store.get(Colony, { where: { id: log.address.toLowerCase() } });
+    if (colony) {
+      domain.colony = colony;
+    }
+
     //  save domain to db
     await context.store.insert(domain);
   }
-
-  // handle the event
-  await handleEvent(context, log, event.args, event.signature);
 };

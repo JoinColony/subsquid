@@ -3,7 +3,7 @@ type Colony @entity {
   ensName: String
   orbitAddress: String
   colonyChainId: BigInt!
-  # token: Token
+  token: Token
   domains: [Domain!]! @derivedFrom(field: "colony")
   # metadata: String
   # metadataHistory: [ColonyMetadata!]! @derivedFrom(field: "colony")
@@ -68,11 +68,11 @@ type Domain @entity {
 #   payment: Payment
 # }
 
-# type Token @entity {
-#   id: ID!
-#   decimals: BigInt
-#   symbol: String
-# }
+type Token @entity {
+  id: ID!
+  decimals: BigInt
+  symbol: String
+}
 
 # type FundingPot @entity {
 #   id: ID!

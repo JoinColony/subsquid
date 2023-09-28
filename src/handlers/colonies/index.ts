@@ -1,19 +1,19 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import handleEvent from '../events';
 import { Domain, Colony } from '../../model'
 import { Log } from '../../types';
 import { replaceFirst } from '../../utils';
+import { createToken } from '../tokens';
 
 import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
-import { Contract as ColonyNetworkContract } from '../../abi/IColonyNetwork';
+import { abi as ColonyNetworkAbi, Contract as ColonyNetworkContract } from '../../abi/IColonyNetwork';
 
 export const handleColonyAdded = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,
 ) => {
-  const event = ColonyAbi.parseLog(log);
+  const event = ColonyNetworkAbi.parseLog(log);
 
   if (!event) {
     return;
@@ -21,14 +21,7 @@ export const handleColonyAdded = async (
 
   const args = event.args.toObject();
 
-  // let rootDomain = new Domain(e. params.colonyAddress.toHex() + '_domain_1')
-  // rootDomain.domainChainId = new BigInt(1)
-  // rootDomain.metadata = ""
-  // rootDomain.save()
-
   let colony = await context.store.get(Colony, { where: { id: args.colonyAddress.toLowerCase() } })
-
-  console.log(colony);
 
   if (!colony) {
     colony = new Colony({ id: args.colonyAddress.toLowerCase() });
@@ -49,22 +42,36 @@ export const handleColonyAdded = async (
 
     colony.colonyChainId = args.colonyId;
 
-    const rootDomainSubsquidId = `${log.address.toLowerCase()}_domain_1`;
-    const rootDomain = await context.store.get(Domain, { where: { id: rootDomainSubsquidId } });
+    // add token
+    const token = await createToken(context, log, args.token);
+    colony.token = token;
 
+    // add domain
+    const rootDomainSubsquidId = `${args.colonyAddress.toLowerCase()}_domain_1`;
+    let rootDomain = await context.store.get(Domain, { where: { id: rootDomainSubsquidId } });
 
+    if (!rootDomain) {
+      rootDomain = new Domain({ id: rootDomainSubsquidId })
+      rootDomain.domainChainId = BigInt(1);
+
+      rootDomain.name = `Root`;
+      rootDomain.parent = null;
+      rootDomain.colonyAddress = args.colonyAddress.toLowerCase();
+
+      //  save domain to db
+      await context.store.insert(rootDomain);
+    }
 
     // colony.token = tokenAddress
-    colony.domains = [rootDomain as Domain];
+    colony.domains = [rootDomain];
 
     await context.store.insert(colony)
-    // ColonyTemplate.create(event.params.colonyAddress)}
+
+    // Update the new root domain entity with the link to it's colony
+    // this can be done only after we've saved the colony entity itself
+    rootDomain.colony = colony;
+    await context.store.save(rootDomain);
   }
-
-
-
-  // handle the event
-  await handleEvent(context, log, event.args, event.signature);
 };
 
 

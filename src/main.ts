@@ -23,29 +23,27 @@ import handleEvent from './handlers/events';
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) => {
   for (const block of context.blocks) {
     for (const log of block.logs as Array<Log>) {
-      console.log(log.address)
       const [topic] = log.topics;
-      // console.log(typeof topic, typeof ColonyNetworkEvents.ColonyAdded.topic, topic === ColonyNetworkEvents.ColonyAdded.topic)
-      // if (topic === ColonyNetworkEvents.ColonyAdded.topic) {
-      //   console.log('yayyyy!')
-      // }
       if (topic) {
+        // handle the event first to save the event entity,
+        // transaction entity and block entity
+        const event = ColonyNetworkAbi.parseLog(log) || ColonyAbi.parseLog(log);
+        if (event) {
+          await handleEvent(context, log, event.args, event.signature);
+        }
+        // handle the rest of the custom events / handlers
         switch (topic) {
-          // case ColonyEvents['DomainAdded(address,uint256)'].topic:
-          // case ColonyEvents['DomainAdded(uint256)'].topic: {
-          //   return handleDomainAdded(context, log);
-          // }
-          // case ColonyNetworkEvents.ColonyAdded.topic:
-          //   console.log('colonyadded');
-          //   break;
-            // return handleColonyAdded(context, log);
+          case ColonyEvents['DomainAdded(address,uint256)'].topic:
+          case ColonyEvents['DomainAdded(uint256)'].topic: {
+            await handleDomainAdded(context, log);
+            break;
+          }
+          case ColonyNetworkEvents.ColonyAdded.topic: {
+            await handleColonyAdded(context, log);
+            break;
+          }
           default: {
-            console.log(ColonyNetworkEvents.ColonyAdded.topic, topic, ColonyNetworkEvents.ColonyAdded.topic === topic)
-            const event = ColonyNetworkAbi.parseLog(log) || ColonyAbi.parseLog(log);
-            if (event) {
-              return handleEvent(context, log, event.args, event.signature);
-            }
-            return;
+            break;
           }
         }
       }

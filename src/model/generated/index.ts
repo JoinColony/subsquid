@@ -1,5 +1,6 @@
 export * from "./colony.model"
 export * from "./domain.model"
+export * from "./token.model"
 export * from "./transaction.model"
 export * from "./block.model"
 export * from "./event.model"
