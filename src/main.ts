@@ -15,7 +15,7 @@ import {
   abi as ColonyNetworkAbi,
 } from './abi/IColonyNetwork';
 
-import { handleDomainAdded } from './handlers/domains';
+import { handleDomainAdded, handleDomainMetadata } from './handlers/domains';
 import { handleColonyAdded } from './handlers/colonies';
 
 import handleEvent from './handlers/events';
@@ -36,6 +36,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           case ColonyEvents['DomainAdded(address,uint256)'].topic:
           case ColonyEvents['DomainAdded(uint256)'].topic: {
             await handleDomainAdded(context, log);
+            break;
+          }
+          case ColonyEvents.DomainMetadata.topic: {
+            await handleDomainMetadata(context, log);
             break;
           }
           case ColonyNetworkEvents.ColonyAdded.topic: {

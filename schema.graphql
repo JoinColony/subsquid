@@ -23,18 +23,18 @@ type Domain @entity {
   parent: Domain
   name: String
   colonyAddress: String
-  # metadata: String
-  # metadataHistory: [DomainMetadata!]! @derivedFrom(field: "domain")
+  metadata: String
+  metadataHistory: [DomainMetadata!]! @derivedFrom(field: "domain")
   # skill: GlobalSkill
   colony: Colony!
 }
 
-# type DomainMetadata @entity {
-#   id: ID! # colonyAddress_<domainId>_<transactionHash>_<logId>
-#   domain: Domain!
-#   transaction: Transaction!
-#   metadata: String
-# }
+type DomainMetadata @entity {
+  id: ID! # colonyAddress_<domainId>_<transactionHash>_<logId>
+  domain: Domain!
+  transaction: Transaction!
+  metadata: String
+}
 
 # type GlobalSkill @entity {
 #   id: ID! # global_skill_<skillChainId>

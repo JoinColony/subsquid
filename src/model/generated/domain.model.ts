@@ -1,5 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToMany as OneToMany_} from "typeorm"
 import * as marshal from "./marshal"
+import {DomainMetadata} from "./domainMetadata.model"
 import {Colony} from "./colony.model"
 
 @Entity_()
@@ -23,6 +24,12 @@ export class Domain {
 
     @Column_("text", {nullable: true})
     colonyAddress!: string | undefined | null
+
+    @Column_("text", {nullable: true})
+    metadata!: string | undefined | null
+
+    @OneToMany_(() => DomainMetadata, e => e.domain)
+    metadataHistory!: DomainMetadata[]
 
     @Index_()
     @ManyToOne_(() => Colony, {nullable: true})

@@ -5,6 +5,7 @@ import { Domain, Colony } from '../../model'
 import { Log } from '../../types';
 import { replaceFirst } from '../../utils';
 import { createToken } from '../tokens';
+import { getDomain } from '../domains';
 
 import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
 import { abi as ColonyNetworkAbi, Contract as ColonyNetworkContract } from '../../abi/IColonyNetwork';
@@ -37,9 +38,6 @@ export const handleColonyAdded = async (
 
     // colony.metadata = null;
 
-    // let tokenAddress = event.token;
-    // createToken(tokenAddress)
-
     colony.colonyChainId = args.colonyId;
 
     // add token
@@ -47,20 +45,7 @@ export const handleColonyAdded = async (
     colony.token = token;
 
     // add domain
-    const rootDomainSubsquidId = `${args.colonyAddress.toLowerCase()}_domain_1`;
-    let rootDomain = await context.store.get(Domain, { where: { id: rootDomainSubsquidId } });
-
-    if (!rootDomain) {
-      rootDomain = new Domain({ id: rootDomainSubsquidId })
-      rootDomain.domainChainId = BigInt(1);
-
-      rootDomain.name = `Root`;
-      rootDomain.parent = null;
-      rootDomain.colonyAddress = args.colonyAddress.toLowerCase();
-
-      //  save domain to db
-      await context.store.insert(rootDomain);
-    }
+    const rootDomain = await getDomain(context, BigInt(1), args.colonyAddress.toLowerCase());
 
     // colony.token = tokenAddress
     colony.domains = [rootDomain];
@@ -73,38 +58,3 @@ export const handleColonyAdded = async (
     await context.store.save(rootDomain);
   }
 };
-
-
-
-
-// const colonyContract = new ColonyContract(context, log.block, log.address);
-
-// /*
-//  * @TODO Properly fetch the domain count
-//  * As-is this won't work if multiple domains (within the same colony) are created
-//  * in one transaction
-//  * This is only true for the "old" event signature: `DomainAdded(address)`
-//  */
-// let domainChainId = args.domainId;
-// if (!domainChainId) {
-//   domainChainId = await colonyContract.getDomainCount();
-// }
-
-// const domainSubsquidId = `${log.address.toLowerCase()}_domain_${domainChainId.toString()}`;
-// let domain = await context.store.get(Domain, { where: { id: domainSubsquidId } });
-
-// if (!domain) {
-//   domain = new Domain({ id: domainSubsquidId })
-//   domain.domainChainId = domainChainId;
-
-//   domain.name = `Team #${domainChainId.toString()}`;
-//   domain.parent = null; // todo
-//   if (domainChainId.toString() === '1') {
-//     domain.name = `Root`;
-//     domain.parent = null;
-//   }
-//   domain.colonyAddress = log.address.toLowerCase();
-
-//   //  save domain to db
-//   await context.store.insert(domain);
-// }
