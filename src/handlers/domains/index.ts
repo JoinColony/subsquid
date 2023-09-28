@@ -20,19 +20,24 @@ export const handleDomainAdded = async (
 
   // const colonyContract = new ColonyContract(ctx, log.block, log.address);
 
-  const domain = new Domain({ id: `${log.address.toLowerCase()}_domain_${event.domainId.toString()}` })
-  domain.domainChainId = event.domainId;
+  const domainSubsquidId = `${log.address.toLowerCase()}_domain_${event.domainId.toString()}`;
+  let domain = await context.store.get(Domain, { where: { id: domainSubsquidId } });
 
-  domain.name = `Team #${event.domainId.toString()}`;
-  domain.parent = null; // todo
-  if (event.domainId.toString() === '1') {
-    domain.name = `Root`;
-    domain.parent = null;
+  if (!domain) {
+    domain = new Domain({ id: domainSubsquidId })
+    domain.domainChainId = event.domainId;
+
+    domain.name = `Team #${event.domainId.toString()}`;
+    domain.parent = null; // todo
+    if (event.domainId.toString() === '1') {
+      domain.name = `Root`;
+      domain.parent = null;
+    }
+    domain.colonyAddress = log.address.toLowerCase();
+
+    //  save domain to db
+    await context.store.insert(domain);
   }
-  domain.colonyAddress = log.address.toLowerCase();
-
-  //  save domain to db
-  await context.store.insert(domain)
 
   // handle the event
   await handleEvent(context, log, event, eventSignature);
