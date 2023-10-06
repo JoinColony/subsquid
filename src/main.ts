@@ -14,10 +14,20 @@ import {
   events as ColonyNetworkEvents,
   abi as ColonyNetworkAbi,
 } from './abi/IColonyNetwork';
+import {
+  abi as VotingReputationAbi,
+} from './abi/VotingReputation';
+
+import {
+  abi as OneTxPaymentAbi,
+} from './abi/OneTxPayment';
+import {
+  abi as TokenAbi,
+} from './abi/Token';
 
 import { handleDomainAdded, handleDomainMetadata } from './handlers/domains';
 import { handleColonyAdded, handleColonyMetadata } from './handlers/colonies';
-import { checkIsColony } from './utils';
+import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
 import handleEvent from './handlers/events';
 
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) => {
@@ -35,11 +45,19 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           if (!await checkIsColony(context, log.block.height, log.address)){
             continue;
           }
-        } // else if (TokenAbi.parseLog(log)) { // Example continuation that will be required for many types
-          // if (!await checkIsToken(context, log.block.height, log.address)){
-          //   continue;
-          // }
-        // } 
+        } else if (VotingReputationAbi.parseLog(log)) {
+          if (!await checkIsExtension(context, log.block.height, log.address)){
+            continue;
+          }
+        } else if (OneTxPaymentAbi.parseLog(log)) { 
+          if (!await checkIsExtension(context, log.block.height, log.address)){
+            continue;
+          }
+        } else if (TokenAbi.parseLog(log)) {
+          if (!await checkIsToken(context, log.block.height, log.address)){
+            continue;
+          }
+        } 
 
         // handle the event first to save the event entity,
         // transaction entity and block entity
