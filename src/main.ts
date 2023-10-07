@@ -1,7 +1,4 @@
-import {Store, TypeormDatabase} from '@subsquid/typeorm-store'
-// import {events as ColonyNetworkEvents, Contract as ColonyNetworkContract } from './abi/IColonyNetwork'
-// import { Domain, Colony } from './model'
-// import { DataHandlerContext, Log } from '@subsquid/evm-processor'
+import { TypeormDatabase } from '@subsquid/typeorm-store'
 
 import { Log } from './types';
 import { processor } from './processor'
@@ -25,8 +22,14 @@ import {
   abi as TokenAbi,
 } from './abi/Token';
 
-import { handleDomainAdded, handleDomainMetadata } from './handlers/domains';
-import { handleColonyAdded, handleColonyMetadata } from './handlers/colonies';
+import {
+  handleDomainAdded,
+  handleDomainMetadata,
+  handleColonyAdded,
+  handleColonyMetadata,
+  handleExtensionInstalled
+} from './handlers';
+
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
 import handleEvent from './handlers/events';
 
@@ -49,7 +52,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           if (!await checkIsExtension(context, log.block.height, log.address)){
             continue;
           }
-        } else if (OneTxPaymentAbi.parseLog(log)) { 
+        } else if (OneTxPaymentAbi.parseLog(log)) {
           if (!await checkIsExtension(context, log.block.height, log.address)){
             continue;
           }
@@ -57,7 +60,7 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           if (!await checkIsToken(context, log.block.height, log.address)){
             continue;
           }
-        } 
+        }
 
         // handle the event first to save the event entity,
         // transaction entity and block entity
@@ -67,6 +70,20 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
         }
         // handle the rest of the custom events / handlers
         switch (topic) {
+          /*
+           * Colony Network Contract Events
+           */
+          case ColonyNetworkEvents.ColonyAdded.topic: {
+            await handleColonyAdded(context, log);
+            break;
+          }
+          case ColonyNetworkEvents.ExtensionInstalled.topic: {
+            await handleExtensionInstalled(context, log);
+            break;
+          }
+          /*
+           * Colony Contract Events
+           */
           case ColonyEvents['DomainAdded(address,uint256)'].topic:
           case ColonyEvents['DomainAdded(uint256)'].topic: {
             await handleDomainAdded(context, log);
@@ -74,10 +91,6 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case ColonyEvents.DomainMetadata.topic: {
             await handleDomainMetadata(context, log);
-            break;
-          }
-          case ColonyNetworkEvents.ColonyAdded.topic: {
-            await handleColonyAdded(context, log);
             break;
           }
           case ColonyEvents.ColonyMetadata.topic: {

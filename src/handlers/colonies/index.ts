@@ -36,8 +36,6 @@ export const handleColonyAdded = async (
       console.log(err);
     }
 
-    // colony.metadata = null;
-
     colony.colonyChainId = args.colonyId;
 
     // add token
@@ -47,7 +45,6 @@ export const handleColonyAdded = async (
     // add domain
     const rootDomain = await getDomain(context, BigInt(1), args.colonyAddress.toLowerCase());
 
-    // colony.token = tokenAddress
     colony.domains = [rootDomain];
 
     await context.store.insert(colony)

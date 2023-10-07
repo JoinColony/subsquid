@@ -3,6 +3,7 @@ import * as marshal from "./marshal"
 import {Token} from "./token.model"
 import {Domain} from "./domain.model"
 import {ColonyMetadata} from "./colonyMetadata.model"
+import {ColonyExtension} from "./colonyExtension.model"
 
 @Entity_()
 export class Colony {
@@ -34,4 +35,7 @@ export class Colony {
 
     @OneToMany_(() => ColonyMetadata, e => e.colony)
     metadataHistory!: ColonyMetadata[]
+
+    @OneToMany_(() => ColonyExtension, e => e.colony)
+    extensions!: ColonyExtension[]
 }

@@ -7,7 +7,7 @@ type Colony @entity {
   domains: [Domain!]! @derivedFrom(field: "colony")
   metadata: String
   metadataHistory: [ColonyMetadata!]! @derivedFrom(field: "colony")
-  # extensions: [ColonyExtension!] @derivedFrom(field: "colony")
+  extensions: [ColonyExtension!] @derivedFrom(field: "colony")
 }
 
 type ColonyMetadata @entity {
@@ -108,11 +108,11 @@ type Event @entity {
   args: String
 }
 
-# type ColonyExtension @entity {
-#   id: ID! # <extensionAddress>
-#   colony: Colony!
-#   hash: String!
-# }
+type ColonyExtension @entity {
+  id: ID! # <extensionAddress>
+  colony: Colony!
+  hash: String!
+}
 
 # type Motion @entity {
 #   id: ID! # <colonyAddress>_motion_<extensionAddress>_<motionId> (motion id is left zero padded to 18 chars)
