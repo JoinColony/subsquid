@@ -12,6 +12,7 @@ import {
   abi as ColonyNetworkAbi,
 } from './abi/IColonyNetwork';
 import {
+  events as VotingReputationEvents,
   abi as VotingReputationAbi,
 } from './abi/VotingReputation';
 
@@ -25,7 +26,7 @@ import {
 
 import {
   handleEvent,
-  handleOneTxEvent,
+  handleExtensionEvent,
   handleDomainAdded,
   handleDomainMetadata,
   handleColonyAdded,
@@ -82,16 +83,15 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
         }
 
         // One TX Extension events
-        const oneTxEvent = OneTxPaymentAbi.parseLog(log);
-        if (oneTxEvent) {
-          await handleOneTxEvent(
+        const extensionEvent = OneTxPaymentAbi.parseLog(log) || VotingReputationAbi.parseLog(log);
+        if (extensionEvent) {
+          await handleExtensionEvent(
             context,
             log,
-            oneTxEvent.args,
-            oneTxEvent.signature,
+            extensionEvent.args,
+            extensionEvent.signature,
           );
         }
-        // @TODO Handle VotingReputation events
 
         // handle the rest of the custom events / handlers
         switch (topic) {

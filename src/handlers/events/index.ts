@@ -5,7 +5,8 @@ import { Result } from 'ethers';
 import { Event, Block, Transaction, Colony } from '../../model'
 import { Log } from '../../types';
 
-import { abi as OneTxPaymentAbi, Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
+import { Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
+import { Contract as VotingReputationContract } from '../../abi/VotingReputation';
 
 export const handleEvent = async (
   context: DataHandlerContext<Store, {}>,
@@ -35,14 +36,18 @@ export const handleEvent = async (
   event.timestamp = BigInt(log.block.timestamp) / BigInt(1000);
   event.name = eventName;
 
+  let args = decodedLog.toObject();
+
   if (associatedColonyAddress) {
     let colony = await context.store.get(Colony, { where: { id: associatedColonyAddress.toLowerCase() }});
-    if (colony) {
-      event.associatedColony = colony;
+    if (!colony) {
+      // try to fetch it from the event args itself
+      const colonyAddress = args?.colony || args?.colonyAddress;
+      colony = await context.store.get(Colony, { where: { id: colonyAddress?.toLowerCase() } });
     }
+    event.associatedColony = colony;
   }
 
-  let args = decodedLog.toObject();
   for (const [key, value] of Object.entries(args)) {
     if (typeof value === 'bigint') {
       args[key] = value.toString();
@@ -53,14 +58,15 @@ export const handleEvent = async (
   await context.store.insert(event);
 };
 
-export const handleOneTxEvent = async (
+export const handleExtensionEvent = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,
   decodedLog: Result,
   eventName: string,
 ) => {
-  const oneTxExtension = new OneTxPaymentContract(context, log.block, log.address);
-  const colony = await oneTxExtension.getColony();
+  // For now, can be any extension contract
+  const extension = new OneTxPaymentContract(context, log.block, log.address);
+  const colony = await extension.getColony();
 
   return handleEvent(
     context,
