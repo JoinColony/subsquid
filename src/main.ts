@@ -29,6 +29,7 @@ import {
   handleColonyMetadata,
   handleExtensionInstalled,
   handleSkillAdded,
+  handlePaymentPayoutSet,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -106,6 +107,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case ColonyEvents.ColonyMetadata.topic: {
             await handleColonyMetadata(context, log);
+            break;
+          }
+          case ColonyEvents.PaymentPayoutSet.topic: {
+            await handlePaymentPayoutSet(context, log);
             break;
           }
           default: {

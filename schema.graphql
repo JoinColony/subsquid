@@ -43,6 +43,19 @@ type GlobalSkill @entity {
   domainId: ID # domain id following the above listed domain id format
 }
 
+type FundingPotPayout @entity {
+  id: ID! # <colonyAddress>_fundingpot_<fundingPotId>_<tokenAddress>
+  token: Token
+  amount: BigInt
+  fundingPotChainId: BigInt
+  fundingPot: FundingPot!
+}
+
+type FundingPot @entity {
+  id: ID!
+  fundingPotPayouts: [FundingPotPayout!]! @derivedFrom(field: "fundingPot")
+}
+
 # type Payment @entity {
 #   id: ID!
 #   domain: Domain
@@ -50,10 +63,6 @@ type GlobalSkill @entity {
 #   to: String
 #   fundingPot: FundingPot
 #   paymentChainId: BigInt
-# }
-
-# type Expenditure @entity {
-#   id: ID!
 # }
 
 # type OneTxPayment @entity {
@@ -64,7 +73,6 @@ type GlobalSkill @entity {
 #   nPayouts: BigInt
 #   agent: String
 #   transaction: Transaction
-#   expenditure: Expenditure
 #   payment: Payment
 # }
 
@@ -73,19 +81,6 @@ type Token @entity {
   decimals: BigInt
   symbol: String
 }
-
-# type FundingPot @entity {
-#   id: ID!
-#   fundingPotPayouts: [FundingPotPayout!]! @derivedFrom(field: "fundingPot")
-# }
-
-# type FundingPotPayout @entity {
-#   id: ID! # <colonyAddress>_fundingpot_<fundingPotId>_<tokenAddress>
-#   token: Token
-#   amount: BigInt
-#   fundingPotChainId: BigInt
-#   fundingPot: FundingPot!
-# }
 
 type Transaction @entity {
   id: ID!
@@ -127,12 +122,4 @@ type ColonyExtension @entity {
 #   requiredStake: BigInt
 #   escalated: Boolean
 #   timestamp: BigInt
-# }
-
-# type CoinMachinePeriod @entity {
-#   id: ID! # <colonyAddress>_coinMachine_<extensionAddress>_<saleEnd>
-#   saleEndedAt: BigInt!
-#   colonyAddress: String!
-#   tokensBought: BigInt
-#   price: BigInt
 # }
