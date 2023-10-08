@@ -30,6 +30,7 @@ import {
   handleExtensionInstalled,
   handleSkillAdded,
   handlePaymentPayoutSet,
+  handlePaymentAdded,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -111,6 +112,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case ColonyEvents.PaymentPayoutSet.topic: {
             await handlePaymentPayoutSet(context, log);
+            break;
+          }
+          case ColonyEvents.PaymentAdded.topic: {
+            await handlePaymentAdded(context, log);
             break;
           }
           default: {
