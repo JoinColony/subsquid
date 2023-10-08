@@ -5,6 +5,7 @@ import { Payment, OneTxPayment, Domain, Transaction } from '../../model'
 import { Log } from '../../types';
 
 import { abi as OneTxPaymentAbi, Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
+import { Contract as ColonyContract } from '../../abi/IColony';
 
 export const handleOneTxPaymentMade = async (
   context: DataHandlerContext<Store, {}>,
@@ -20,6 +21,7 @@ export const handleOneTxPaymentMade = async (
 
   const chainExtension = new OneTxPaymentContract(context, log.block, log.address);
   const colonyAddress = await chainExtension.getColony();
+  const colonyContract = new ColonyContract(context, log.block, colonyAddress);
 
   const colonySubsquidId = `${colonyAddress.toLowerCase()}`;
   const rootDomainSubsquidId = `${colonySubsquidId}_domain_1`;
@@ -37,7 +39,11 @@ export const handleOneTxPaymentMade = async (
 
   const rootDomain = await context.store.get(Domain, { where: { id: rootDomainSubsquidId } });
   const payment = await context.store.get(Payment, { where: { id: paymentSubsquidId } });
-  const paymentDomain = await context.store.get(Domain, { where: { id: payment?.domain?.id } });
+  const chainPayment = await colonyContract.getPayment(payment?.paymentChainId || args.fundamentalId);
+
+  // for some reason the Payment object from the database doesn't return neither the domain or the colony props
+  // so we need to fetch the domain id from the chain directly and fetch the Domain object like that
+  const paymentDomain = await context.store.get(Domain, { where: { id: `${colonySubsquidId}_domain_${chainPayment.domainId.toString()}` } });
 
   oneTxPayment.payment = payment;
   oneTxPayment.domain = paymentDomain || rootDomain;
