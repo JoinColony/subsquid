@@ -109,17 +109,17 @@ type ColonyExtension @entity {
   hash: String!
 }
 
-# type Motion @entity {
-#   id: ID! # <colonyAddress>_motion_<extensionAddress>_<motionId> (motion id is left zero padded to 18 chars)
-#   fundamentalChainId: BigInt
-#   action: String
-#   extensionAddress: String
-#   associatedColony: Colony
-#   transaction: Transaction
-#   agent: String
-#   domain: Domain
-#   stakes: [String!]
-#   requiredStake: BigInt
-#   escalated: Boolean
-#   timestamp: BigInt
-# }
+type Motion @entity {
+  id: ID! # <colonyAddress>_motion_<extensionAddress>_<motionId> (motion id is left zero padded to 18 chars)
+  fundamentalChainId: BigInt
+  action: String
+  extensionAddress: String
+  associatedColony: Colony
+  transaction: Transaction
+  agent: String
+  domain: Domain
+  stakes: [String!]
+  requiredStake: BigInt
+  escalated: Boolean
+  timestamp: BigInt
+}

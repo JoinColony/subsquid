@@ -6,7 +6,6 @@ import { Event, Block, Transaction, Colony } from '../../model'
 import { Log } from '../../types';
 
 import { Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
-import { Contract as VotingReputationContract } from '../../abi/VotingReputation';
 
 export const handleEvent = async (
   context: DataHandlerContext<Store, {}>,
@@ -15,6 +14,7 @@ export const handleEvent = async (
   eventName: string,
   associatedColonyAddress?: string,
 ) => {
+  let colony: Colony | undefined;
   const event = new Event({ id: `${log.transactionHash.toLowerCase()}_event_${log.logIndex}`});
 
   let block = await context.store.get(Block, { where: { id: `block_${log.block.height}` } });
@@ -39,7 +39,7 @@ export const handleEvent = async (
   let args = decodedLog.toObject();
 
   if (associatedColonyAddress) {
-    let colony = await context.store.get(Colony, { where: { id: associatedColonyAddress.toLowerCase() }});
+    colony = await context.store.get(Colony, { where: { id: associatedColonyAddress.toLowerCase() }});
     if (!colony) {
       // try to fetch it from the event args itself
       const colonyAddress = args?.colony || args?.colonyAddress;

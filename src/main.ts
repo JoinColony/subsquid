@@ -36,6 +36,7 @@ import {
   handlePaymentPayoutSet,
   handlePaymentAdded,
   handleOneTxPaymentMade,
+  handleMotionCreated,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -139,6 +140,13 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
            */
           case OneTxPaymentEvents.OneTxPaymentMade.topic: {
             await handleOneTxPaymentMade(context, log);
+            break;
+          }
+          /*
+           * VotingReputation Contract Events
+           */
+          case VotingReputationEvents.MotionCreated.topic: {
+            await handleMotionCreated(context, log);
             break;
           }
           default: {
