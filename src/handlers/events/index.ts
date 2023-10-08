@@ -12,25 +12,25 @@ const handleEvent = async (
   eventName: string,
   associatedColonyAddress?: string,
 ) => {
-  const event = new Event({ id: `${log.transactionHash}_event_${log.logIndex}`});
+  const event = new Event({ id: `${log.transactionHash.toLowerCase()}_event_${log.logIndex}`});
 
   let block = await context.store.get(Block, { where: { id: `block_${log.block.height}` } });
   if (!block) {
     block = new Block({ id: `block_${log.block.height}`});
-    block.timestamp = BigInt(log.block.timestamp);
+    block.timestamp = BigInt(log.block.timestamp) / BigInt(1000);
     await context.store.insert(block);
   }
 
-  let transaction = await context.store.get(Transaction, { where: { id: log.transactionHash }});
+  let transaction = await context.store.get(Transaction, { where: { id: log.transactionHash.toLowerCase() }});
   if (!transaction) {
-    transaction = new Transaction({ id: log.transactionHash });
+    transaction = new Transaction({ id: log.transactionHash.toLowerCase() });
     transaction.block = block;
     await context.store.insert(transaction);
   }
 
   event.transaction = transaction;
   event.address = log.address;
-  event.timestamp = BigInt(log.block.timestamp);
+  event.timestamp = BigInt(log.block.timestamp) / BigInt(1000);
   event.name = eventName;
 
   if (associatedColonyAddress) {

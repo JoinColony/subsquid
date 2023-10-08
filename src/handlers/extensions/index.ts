@@ -6,6 +6,8 @@ import { Log } from '../../types';
 
 import { abi as ColonyNetworkAbi, Contract as ColonyNetworkContract } from '../../abi/IColonyNetwork';
 
+export * from './oneTxPayment';
+
 export const handleExtensionInstalled = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,

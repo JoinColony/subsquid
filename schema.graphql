@@ -65,16 +65,16 @@ type Payment @entity {
   paymentChainId: BigInt
 }
 
-# type OneTxPayment @entity {
-#   id: ID! #<colonyAddress>_oneTxPayment_<noOfPayouts>_<PayoutId> (payout id is left zero padded to 18 chars)
-#   domain: Domain
-#   fundamentalChainId: BigInt
-#   timestamp: BigInt
-#   nPayouts: BigInt
-#   agent: String
-#   transaction: Transaction
-#   payment: Payment
-# }
+type OneTxPayment @entity {
+  id: ID! #<colonyAddress>_oneTxPayment_<noOfPayouts>_<PayoutId> (payout id is left zero padded to 18 chars)
+  domain: Domain
+  fundamentalChainId: BigInt
+  timestamp: BigInt
+  nPayouts: BigInt
+  agent: String
+  transaction: Transaction
+  payment: Payment
+}
 
 type Token @entity {
   id: ID!

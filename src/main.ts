@@ -16,6 +16,7 @@ import {
 } from './abi/VotingReputation';
 
 import {
+  events as OneTxPaymentEvents,
   abi as OneTxPaymentAbi,
 } from './abi/OneTxPayment';
 import {
@@ -31,6 +32,7 @@ import {
   handleSkillAdded,
   handlePaymentPayoutSet,
   handlePaymentAdded,
+  handleOneTxPaymentMade,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -77,6 +79,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
             log.address.toLowerCase(),
           );
         }
+
+        // @TODO Handle OneTxPayment events
+        // @TODO Handle VotingReputation events
+
         // handle the rest of the custom events / handlers
         switch (topic) {
           /*
@@ -116,6 +122,13 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case ColonyEvents.PaymentAdded.topic: {
             await handlePaymentAdded(context, log);
+            break;
+          }
+          /*
+           * OneTxPayment Contract Events
+           */
+          case OneTxPaymentEvents.OneTxPaymentMade.topic: {
+            await handleOneTxPaymentMade(context, log);
             break;
           }
           default: {
