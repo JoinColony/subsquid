@@ -28,6 +28,7 @@ import {
   handleColonyAdded,
   handleColonyMetadata,
   handleExtensionInstalled,
+  handleSkillAdded,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -85,6 +86,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case ColonyNetworkEvents.ExtensionInstalled.topic: {
             await handleExtensionInstalled(context, log);
+            break;
+          }
+          case ColonyNetworkEvents.SkillAdded.topic: {
+            await handleSkillAdded(context, log);
             break;
           }
           /*

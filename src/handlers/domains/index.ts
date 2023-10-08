@@ -1,7 +1,7 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import { Domain, DomainMetadata, Colony, Transaction } from '../../model'
+import { Domain, DomainMetadata, Colony, Transaction, GlobalSkill } from '../../model'
 import { Log } from '../../types';
 
 import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
@@ -9,14 +9,16 @@ import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony'
 export const getDomain = async (
   context: DataHandlerContext<Store, {}>,
   domainId: bigint,
-  colonyAddress: string,
+  log: Log,
 ) => {
-  const domainSubsquidId = `${colonyAddress.toLowerCase()}_domain_${domainId.toString()}`;
+  const domainSubsquidId = `${log.address.toLowerCase()}_domain_${domainId.toString()}`;
   let domain = await context.store.get(Domain, { where: { id: domainSubsquidId } });
 
   if (domain) {
     return domain;
   }
+
+  const colonyContract = new ColonyContract(context, log.block, log.address);
 
   domain = new Domain({ id: domainSubsquidId });
   domain.domainChainId = domainId;
@@ -27,9 +29,23 @@ export const getDomain = async (
     domain.name = `Root`;
     domain.parent = null;
   }
-  domain.colonyAddress = colonyAddress.toLowerCase();
+  domain.colonyAddress = log.address.toLowerCase();
 
-  const colony = await context.store.get(Colony, { where: { id: colonyAddress.toLowerCase() } });
+  // set the skill
+  const chainDomain = await colonyContract.getDomain(domainId);
+  const globalSkillSubsquidId = `global_skill_${chainDomain.skillId.toString()}`;
+  let skill = await context.store.get(GlobalSkill, { where: { id: globalSkillSubsquidId } });
+  if (!skill) {
+    skill = new GlobalSkill({ id: globalSkillSubsquidId });
+    skill.skillChainId = chainDomain.skillId;
+    await context.store.insert(skill);
+  }
+  skill.domainId = domainSubsquidId;
+  await context.store.save(skill);
+
+  domain.skill = skill;
+
+  const colony = await context.store.get(Colony, { where: { id: log.address.toLowerCase() } });
   if (colony) {
     domain.colony = colony;
   }
@@ -65,7 +81,7 @@ export const handleDomainAdded = async (
     domainChainId = await colonyContract.getDomainCount();
   }
 
-  await getDomain(context, domainChainId, log.address);
+  await getDomain(context, domainChainId, log);
 };
 
 export const handleDomainMetadata = async (
@@ -80,7 +96,7 @@ export const handleDomainMetadata = async (
 
   const args = event.args.toObject();
 
-  const domain = await getDomain(context, args.domainId, log.address);
+  const domain = await getDomain(context, args.domainId, log);
 
   const domainMetadataHistory = new DomainMetadata({
     id: `${log.address.toLowerCase()}_domain_${args.domainId.toString()}_metadata_${args.metadata}_transaction_${log.transactionHash.toLowerCase()}_log_${log.logIndex.toString()}`,

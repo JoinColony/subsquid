@@ -43,7 +43,7 @@ export const handleColonyAdded = async (
     colony.token = token;
 
     // add domain
-    const rootDomain = await getDomain(context, BigInt(1), args.colonyAddress.toLowerCase());
+    const rootDomain = await getDomain(context, BigInt(1), { ...log, address: args.colonyAddress });
 
     colony.domains = [rootDomain];
 

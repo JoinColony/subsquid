@@ -3,4 +3,4 @@ export * from './domains';
 export * from './extensions';
 export * from './events';
 export * from './tokens';
-
+export * from './skills';
