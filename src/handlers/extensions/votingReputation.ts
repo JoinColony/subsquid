@@ -33,9 +33,6 @@ export const handleMotionCreated = async (
   motion.action = chainMotion.action;
   motion.agent = args.creator.toLowerCase();
   motion.extensionAddress = votingReputationInstanceAddress;
-  /*
-   * @TODO Figure out why stakes fetched from the chain are always 0
-   */
   motion.stakes = chainMotion.stakes.map((stake) => stake.toString());
   motion.requiredStake = chainMotion.skillRep * totalStakeFraction / (BigInt(10) ** BigInt(18));
   motion.escalated = chainMotion.escalated;
@@ -51,4 +48,33 @@ export const handleMotionCreated = async (
   motion.transaction = transaction;
 
   await context.store.insert(motion);
+};
+
+
+export const handleMotionStaked = async (
+  context: DataHandlerContext<Store, {}>,
+  log: Log,
+) => {
+  const event = VotingReputationAbi.parseLog(log);
+
+  if (!event) {
+    return;
+  }
+
+  const args = event.args.toObject();
+
+  console.log({ args });
+
+  const votingReputationInstanceAddress = log.address.toLowerCase();
+  const chainExtension = new VotingReputationContract(context, log.block, votingReputationInstanceAddress);
+  const colonyAddress = await chainExtension.getColony();
+  const chainMotion = await chainExtension.getMotion(args.motionId);
+
+  const motionSubsquidId = `${colonyAddress.toLowerCase()}_motion_${votingReputationInstanceAddress}_${args.motionId.toString()}`;
+
+  const motion = await context.store.get(Motion, { where: { id: motionSubsquidId } });
+  if (motion) {
+    motion.stakes = chainMotion.stakes.map((stake) => stake.toString());
+    await context.store.save(motion);
+  }
 };
