@@ -1,7 +1,7 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import { Domain, DomainMetadata, Colony, Transaction, GlobalSkill, FundingPotPayout, FundingPot } from '../../model'
+import { FundingPotPayout, FundingPot } from '../../model'
 import { Log } from '../../types';
 
 import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
@@ -37,5 +37,17 @@ export const handlePaymentPayoutSet = async (
   fundingPotPayout.token = await createToken(context, log, args.token);
   await context.store.save(fundingPotPayout);
 
-  console.log({ name: event.signature, args });
+  // Funding Pot
+  const fundingPotSubsquidId = `${log.address.toLowerCase()}_fundingpot_${fundingPotChainId.toString()}`;
+  let fundingPot = await context.store.get(FundingPot, { where: { id: fundingPotSubsquidId } });
+  if (!fundingPot) {
+    fundingPot = new FundingPot({ id: fundingPotSubsquidId });
+    fundingPot.fundingPotPayouts = [];
+    await context.store.insert(fundingPot);
+  }
+  fundingPot.fundingPotPayouts = [...fundingPot.fundingPotPayouts, fundingPotPayout];
+  await context.store.save(fundingPot);
+
+  fundingPotPayout.fundingPot = fundingPot;
+  await context.store.save(fundingPotPayout);
 };
