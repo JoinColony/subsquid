@@ -1,10 +1,21 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import { Domain, DomainMetadata, Colony, Transaction, GlobalSkill } from '../../model'
+import {
+  Domain,
+  DomainMetadata,
+  Colony,
+  Transaction,
+  GlobalSkill,
+  Event,
+} from '../../model'
 import { Log } from '../../types';
 
-import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
+import {
+  abi as ColonyAbi,
+  Contract as ColonyContract,
+  events as ColonyEvents,
+} from '../../abi/IColony';
 
 export const getDomain = async (
   context: DataHandlerContext<Store, {}>,
@@ -12,6 +23,8 @@ export const getDomain = async (
   log: Log,
 ) => {
   const domainSubsquidId = `${log.address.toLowerCase()}_domain_${domainId.toString()}`;
+  const eventSubsquidId = `${log.transactionHash.toLowerCase()}_event_${log.logIndex}`;
+
   let domain = await context.store.get(Domain, { where: { id: domainSubsquidId } });
 
   if (domain) {
@@ -53,7 +66,34 @@ export const getDomain = async (
   //  save domain to db
   await context.store.insert(domain);
 
+  // since the even was already created, and it won't have the current domain set to it
+  // (it won't find it when it will try to fetch it from the db)
+  // we need to add it manually
+  const event = await context.store.get(Event, { where: { id: eventSubsquidId } });
+  if (event) {
+    event.domain = domain;
+    await context.store.save(event);
+  }
+
   return domain;
+};
+
+export const getArbitraryReputationUpdateDomain = async (
+  context: DataHandlerContext<Store, {}>,
+  log: Log,
+) => {
+  const event = ColonyAbi.parseLog(log);
+
+  if (!event || event.topic !== ColonyEvents.ArbitraryReputationUpdate.topic) {
+    return null;
+  }
+
+  const args = event.args.toObject();
+
+  if (args.amount < 0) {
+    const skill = await context.store.get(GlobalSkill, { where: { id: `global_skill_${args.skillId.toString()}` } });
+    return context.store.get(Domain, { where: { id: skill?.domainId || '' } });
+  }
 };
 
 export const handleDomainAdded = async (

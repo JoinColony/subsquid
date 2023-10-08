@@ -1,5 +1,6 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
+import {Domain} from "./domain.model"
 import {Transaction} from "./transaction.model"
 import {Colony} from "./colony.model"
 
@@ -11,6 +12,10 @@ export class Event {
 
     @PrimaryColumn_()
     id!: string
+
+    @Index_()
+    @ManyToOne_(() => Domain, {nullable: true})
+    domain!: Domain | undefined | null
 
     @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
     timestamp!: bigint | undefined | null

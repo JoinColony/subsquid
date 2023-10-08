@@ -94,7 +94,7 @@ type Block @entity {
 
 type Event @entity {
   id: ID! # <globalEventCount>_<txHash>_event_<logIndex> (event count is left zero padded to 18 chars)
-  # domain: Domain
+  domain: Domain
   timestamp: BigInt
   transaction: Transaction
   address: String

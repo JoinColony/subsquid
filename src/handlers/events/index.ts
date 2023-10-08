@@ -2,10 +2,12 @@ import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 import { Result } from 'ethers';
 
-import { Event, Block, Transaction, Colony } from '../../model'
+import { Event, Block, Transaction, Colony, Domain } from '../../model'
 import { Log } from '../../types';
 
 import { Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
+
+import { getArbitraryReputationUpdateDomain } from '../domains';
 
 export const handleEvent = async (
   context: DataHandlerContext<Store, {}>,
@@ -15,6 +17,7 @@ export const handleEvent = async (
   associatedColonyAddress?: string,
 ) => {
   let colony: Colony | undefined;
+
   const event = new Event({ id: `${log.transactionHash.toLowerCase()}_event_${log.logIndex}`});
 
   let block = await context.store.get(Block, { where: { id: `block_${log.block.height}` } });
@@ -32,7 +35,7 @@ export const handleEvent = async (
   }
 
   event.transaction = transaction;
-  event.address = log.address;
+  event.address = log.address.toLowerCase();
   event.timestamp = BigInt(log.block.timestamp) / BigInt(1000);
   event.name = eventName;
 
@@ -47,6 +50,17 @@ export const handleEvent = async (
     }
     event.associatedColony = colony;
   }
+
+    // if this is a smite event, fetch the domain from there
+  let domain = await getArbitraryReputationUpdateDomain(context, log);
+  if (!domain) {
+    // domain id from the event args or fall back to root
+    const colonySubsquidId = `${associatedColonyAddress?.toLowerCase() || args?.colony?.toLowerCase() || args?.colonyAddress?.toLowerCase() || log.address.toLowerCase()}`;
+    const domainSubsquidId = `${colonySubsquidId}_domain_${args?.domainId?.toString() || 1}`;
+    domain = await context.store.get(Domain, { where: { id: domainSubsquidId } });
+  }
+
+  event.domain = domain;
 
   for (const [key, value] of Object.entries(args)) {
     if (typeof value === 'bigint') {
