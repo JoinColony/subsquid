@@ -24,6 +24,8 @@ import {
 } from './abi/Token';
 
 import {
+  handleEvent,
+  handleOneTxEvent,
   handleDomainAdded,
   handleDomainMetadata,
   handleColonyAdded,
@@ -36,7 +38,6 @@ import {
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
-import handleEvent from './handlers/events';
 
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) => {
   // ******
@@ -76,11 +77,20 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
             log,
             event.args,
             event.signature,
-            log.address.toLowerCase(),
+            log.address.toLowerCase(), // if set to colony address will add an associatedColony to the event enti
           );
         }
 
-        // @TODO Handle OneTxPayment events
+        // One TX Extension events
+        const oneTxEvent = OneTxPaymentAbi.parseLog(log);
+        if (oneTxEvent) {
+          await handleOneTxEvent(
+            context,
+            log,
+            oneTxEvent.args,
+            oneTxEvent.signature,
+          );
+        }
         // @TODO Handle VotingReputation events
 
         // handle the rest of the custom events / handlers

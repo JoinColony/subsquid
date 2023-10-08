@@ -5,7 +5,9 @@ import { Result } from 'ethers';
 import { Event, Block, Transaction, Colony } from '../../model'
 import { Log } from '../../types';
 
-const handleEvent = async (
+import { abi as OneTxPaymentAbi, Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
+
+export const handleEvent = async (
   context: DataHandlerContext<Store, {}>,
   log: Log,
   decodedLog: Result,
@@ -51,4 +53,20 @@ const handleEvent = async (
   await context.store.insert(event);
 };
 
-export default handleEvent;
+export const handleOneTxEvent = async (
+  context: DataHandlerContext<Store, {}>,
+  log: Log,
+  decodedLog: Result,
+  eventName: string,
+) => {
+  const oneTxExtension = new OneTxPaymentContract(context, log.block, log.address);
+  const colony = await oneTxExtension.getColony();
+
+  return handleEvent(
+    context,
+    log,
+    decodedLog,
+    eventName,
+    colony.toLowerCase(),
+  );
+};
