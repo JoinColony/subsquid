@@ -63,8 +63,6 @@ export const handleMotionStaked = async (
 
   const args = event.args.toObject();
 
-  console.log({ args });
-
   const votingReputationInstanceAddress = log.address.toLowerCase();
   const chainExtension = new VotingReputationContract(context, log.block, votingReputationInstanceAddress);
   const colonyAddress = await chainExtension.getColony();
@@ -75,6 +73,32 @@ export const handleMotionStaked = async (
   const motion = await context.store.get(Motion, { where: { id: motionSubsquidId } });
   if (motion) {
     motion.stakes = chainMotion.stakes.map((stake) => stake.toString());
+    await context.store.save(motion);
+  }
+};
+
+export const handleMotionEscalated = async (
+  context: DataHandlerContext<Store, {}>,
+  log: Log,
+) => {
+  const event = VotingReputationAbi.parseLog(log);
+
+  if (!event) {
+    return;
+  }
+
+  const args = event.args.toObject();
+
+  const votingReputationInstanceAddress = log.address.toLowerCase();
+  const chainExtension = new VotingReputationContract(context, log.block, votingReputationInstanceAddress);
+  const colonyAddress = await chainExtension.getColony();
+  const chainMotion = await chainExtension.getMotion(args.motionId);
+
+  const motionSubsquidId = `${colonyAddress.toLowerCase()}_motion_${votingReputationInstanceAddress}_${args.motionId.toString()}`;
+
+  const motion = await context.store.get(Motion, { where: { id: motionSubsquidId } });
+  if (motion) {
+    motion.escalated = chainMotion.escalated;
     await context.store.save(motion);
   }
 };

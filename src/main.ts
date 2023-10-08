@@ -38,6 +38,7 @@ import {
   handleOneTxPaymentMade,
   handleMotionCreated,
   handleMotionStaked,
+  handleMotionEscalated,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -152,6 +153,10 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
           }
           case VotingReputationEvents.MotionStaked.topic: {
             await handleMotionStaked(context, log);
+            break;
+          }
+          case VotingReputationEvents.MotionEscalated.topic: {
+            await handleMotionEscalated(context, log);
             break;
           }
           default: {
