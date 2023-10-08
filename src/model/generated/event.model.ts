@@ -1,6 +1,7 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
 import * as marshal from "./marshal"
 import {Transaction} from "./transaction.model"
+import {Colony} from "./colony.model"
 
 @Entity_()
 export class Event {
@@ -20,6 +21,10 @@ export class Event {
 
     @Column_("text", {nullable: true})
     address!: string | undefined | null
+
+    @Index_()
+    @ManyToOne_(() => Colony, {nullable: true})
+    associatedColony!: Colony | undefined | null
 
     @Column_("text", {nullable: true})
     name!: string | undefined | null

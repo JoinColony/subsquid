@@ -1,13 +1,13 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import { Transaction, Colony, ColonyMetadata } from '../../model'
+import { Transaction, Colony, ColonyMetadata, Event } from '../../model'
 import { Log } from '../../types';
 import { replaceFirst } from '../../utils';
 import { createToken } from '../tokens';
 import { getDomain } from '../domains';
 
-import { abi as ColonyAbi, Contract as ColonyContract } from '../../abi/IColony';
+import { abi as ColonyAbi } from '../../abi/IColony';
 import { abi as ColonyNetworkAbi, Contract as ColonyNetworkContract } from '../../abi/IColonyNetwork';
 
 export const handleColonyAdded = async (

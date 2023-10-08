@@ -103,7 +103,7 @@ type Event @entity {
   timestamp: BigInt
   transaction: Transaction
   address: String
-  # associatedColony: Colony
+  associatedColony: Colony
   name: String
   args: String
 }

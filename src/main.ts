@@ -27,7 +27,7 @@ import {
   handleDomainMetadata,
   handleColonyAdded,
   handleColonyMetadata,
-  handleExtensionInstalled
+  handleExtensionInstalled,
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
@@ -66,7 +66,13 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
         // transaction entity and block entity
         const event = ColonyNetworkAbi.parseLog(log) || ColonyAbi.parseLog(log);
         if (event) {
-          await handleEvent(context, log, event.args, event.signature);
+          await handleEvent(
+            context,
+            log,
+            event.args,
+            event.signature,
+            log.address.toLowerCase(),
+          );
         }
         // handle the rest of the custom events / handlers
         switch (topic) {

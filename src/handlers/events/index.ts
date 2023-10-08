@@ -2,7 +2,7 @@ import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 import { Result } from 'ethers';
 
-import { Event, Block, Transaction } from '../../model'
+import { Event, Block, Transaction, Colony } from '../../model'
 import { Log } from '../../types';
 
 const handleEvent = async (
@@ -10,6 +10,7 @@ const handleEvent = async (
   log: Log,
   decodedLog: Result,
   eventName: string,
+  associatedColonyAddress?: string,
 ) => {
   const event = new Event({ id: `${log.transactionHash}_event_${log.logIndex}`});
 
@@ -29,9 +30,15 @@ const handleEvent = async (
 
   event.transaction = transaction;
   event.address = log.address;
-  // todo: event.associatedColony
   event.timestamp = BigInt(log.block.timestamp);
   event.name = eventName;
+
+  if (associatedColonyAddress) {
+    let colony = await context.store.get(Colony, { where: { id: associatedColonyAddress.toLowerCase() }});
+    if (colony) {
+      event.associatedColony = colony;
+    }
+  }
 
   let args = decodedLog.toObject();
   for (const [key, value] of Object.entries(args)) {
