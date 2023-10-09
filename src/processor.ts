@@ -48,3 +48,10 @@ export const processor = new EvmBatchProcessor()
       ...Object.values(colonyEvents).map(entry => entry.topic),
     ],
   })
+  .setFields({
+    log: {
+      topics: true,
+      data: true,
+      transactionHash: true,
+    }
+  })
