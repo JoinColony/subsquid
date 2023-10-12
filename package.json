@@ -2,6 +2,8 @@
   "name": "squid-evm-template",
   "private": true,
   "scripts": {
+    "generateProductionConstants": "NETWORK_ADDRESS='0x78163f593D1Fa151B4B7cacD146586aD2b686294' node ./utils/generateConstantsFile.js > ./src/utils/constants.ts",
+    "generateQAConstants": "NETWORK_ADDRESS='0x6a05DD32860C1b5351B97b4eCAAbFbc60edb102f' node ./src/utils/generateConstantsFile.js > ./src/utils/constants.ts",
     "build": "rm -rf lib && tsc"
   },
   "dependencies": {

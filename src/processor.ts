@@ -2,8 +2,10 @@ import {lookupArchive} from '@subsquid/archive-registry'
 
 import { events as colonyNetworkEvents } from './abi/IColonyNetwork';
 import { events as colonyEvents } from './abi/IColony';
+import { events as votingReputationEvents } from './abi/VotingReputation';
+import { events as oneTxPaymentEvents } from './abi/OneTxPayment';
 
-import { COLONY_NETWORK_ADDRESS } from './utils/constants';
+import { COLONY_NETWORK_ADDRESS, PRELOADED_COLONIES, PRELOAD_HEIGHT, PRELOADED_ONE_TX_PAYMENT, PRELOADED_VOTING_REPUTATION } from './utils/constants';
 
 import {
     BlockHeader,
@@ -31,9 +33,9 @@ export const processor = new EvmBatchProcessor()
       // Must be set for RPC ingestion (https://docs.subsquid.io/evm-indexing/evm-processor/)
       // OR to enable contract state queries (https://docs.subsquid.io/evm-indexing/query-state/)
       // chain: 'https://xdai.colony.io/rpcarchive/',
-    chain: 'http://localhost:8545/'
+      chain: 'http://localhost:8545/'
   })
-  .setFinalityConfirmation(1)
+  .setFinalityConfirmation(200)
   .setBlockRange({
       from: 1,
   })
@@ -44,8 +46,45 @@ export const processor = new EvmBatchProcessor()
     ],
   })
   .addLog({
+    range: {
+      from: PRELOAD_HEIGHT + 1,
+    },
     topic0: [
       ...Object.values(colonyEvents).map(entry => entry.topic),
+    ],
+  })
+  .addLog({
+    address: PRELOADED_COLONIES,
+    topic0: [
+      ...Object.values(colonyEvents).map(entry => entry.topic),
+    ],
+  })
+  .addLog({
+    range: {
+      from: PRELOAD_HEIGHT + 1,
+    },
+    topic0: [
+      ...Object.values(oneTxPaymentEvents).map(entry => entry.topic),
+    ],
+  })
+  .addLog({
+    address: PRELOADED_ONE_TX_PAYMENT,
+    topic0: [
+      ...Object.values(oneTxPaymentEvents).map(entry => entry.topic),
+    ],
+  })
+  .addLog({
+    range: {
+      from: PRELOAD_HEIGHT + 1,
+    },
+    topic0: [
+      ...Object.values(votingReputationEvents).map(entry => entry.topic),
+    ],
+  })
+  .addLog({
+    address: PRELOADED_VOTING_REPUTATION,
+    topic0: [
+      ...Object.values(votingReputationEvents).map(entry => entry.topic),
     ],
   })
   .setFields({

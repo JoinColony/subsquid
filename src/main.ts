@@ -42,6 +42,7 @@ import {
 } from './handlers';
 
 import { checkIsColony, checkIsExtension, checkIsToken } from './utils';
+import { COLONY_NETWORK_ADDRESS } from './utils/constants';
 
 processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) => {
   // ******
@@ -50,51 +51,41 @@ processor.run(new TypeormDatabase({ supportHotBlocks: true }), async (context) =
   for (const block of context.blocks) {
     for (const log of block.logs as Array<Log>) {
       const [topic] = log.topics;
+      let event;
+
+      // Check event is on an object we know the interface of, before we 
+      // try decoding. We have to do this first, before trying to parse any logs
+      if (
+        log.address !== COLONY_NETWORK_ADDRESS && 
+        !await checkIsColony(context, log.block.height, log.address) &&
+        !await checkIsExtension(context, log.block.height, log.address) 
+      ) {
+        continue;
+      }
+
+      // We ignore 'metatransaction executed', which is on many of our contracts and significantly 
+      // complicates things
+      if (topic === ColonyEvents.MetaTransactionExecuted.topic) {
+        continue;
+      }
+
       if (topic) {
-        // If events are on 'untrusted' entities i.e. anything without a canonical single deployment,
-        // we check if it is actually something we want to pay attention to (e.g. that 'DomainAdded' was
-        // emitted by a Colony that was deployed with ColonyNetwork)
-        if (ColonyAbi.parseLog(log)){
-          if (!await checkIsColony(context, log.block.height, log.address)){
-            continue;
-          }
-        } else if (VotingReputationAbi.parseLog(log)) {
-          if (!await checkIsExtension(context, log.block.height, log.address)){
-            continue;
-          }
-        } else if (OneTxPaymentAbi.parseLog(log)) {
-          if (!await checkIsExtension(context, log.block.height, log.address)){
-            continue;
-          }
-        } else if (TokenAbi.parseLog(log)) {
-          if (!await checkIsToken(context, log.block.height, log.address)){
-            continue;
-          }
-        }
-
-        // handle the event first to save the event entity,
-        // transaction entity and block entity
-        const event = ColonyNetworkAbi.parseLog(log) || ColonyAbi.parseLog(log);
-        if (event) {
-          await handleEvent(
-            context,
-            log,
-            event.args,
-            event.signature,
-            log.address.toLowerCase(), // if set to colony address will add an associatedColony to the event enti
-          );
-        }
-
-        // One TX Extension events
-        const extensionEvent = OneTxPaymentAbi.parseLog(log) || VotingReputationAbi.parseLog(log);
-        if (extensionEvent) {
-          await handleExtensionEvent(
-            context,
-            log,
-            extensionEvent.args,
-            extensionEvent.signature,
-          );
-        }
+        if ((event = ColonyAbi.parseLog(log)) && event){
+          await handleEvent(context, log, event.args, event.signature, log.address);
+        } else if ((event = ColonyNetworkAbi.parseLog(log)) && event) {
+          await handleEvent(context, log, event.args, event.signature);
+        } else if ((event = VotingReputationAbi.parseLog(log)) && event) {
+          await handleExtensionEvent(context, log, event.args, event.signature);
+        } else if ((event = OneTxPaymentAbi.parseLog(log)) && event) {
+          await handleExtensionEvent(context, log, event.args, event.signature);
+        } 
+        // Tokens are a problem. ERC20 vs ERC721 transfer event with last parameter
+        // indexed or not means that this call might fail.
+        // } else if ((event = TokenAbi.parseLog(log)) && event) {
+        //   if (!await checkIsToken(context, log.block.height, log.address)){
+        //     continue;
+        //   }
+        // }
 
         // handle the rest of the custom events / handlers
         switch (topic) {

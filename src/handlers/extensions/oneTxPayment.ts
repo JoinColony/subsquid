@@ -1,7 +1,7 @@
 import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 
-import { Payment, OneTxPayment, Domain, Transaction } from '../../model'
+import { Payment, OneTxPayment, Domain, Transaction, ColonyExtension } from '../../model'
 import { Log } from '../../types';
 
 import { abi as OneTxPaymentAbi, Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
@@ -19,12 +19,13 @@ export const handleOneTxPaymentMade = async (
 
   const args = event.args.toObject();
 
-  const chainExtension = new OneTxPaymentContract(context, log.block, log.address);
-  const colonyAddress = await chainExtension.getColony();
-  const colonyContract = new ColonyContract(context, log.block, colonyAddress);
+  const extension = await context.store.get(ColonyExtension, { where: { id: log.address }, relations: {"colony": true} });
+  if (!extension) {
+    throw new Error("Extension not known, but should be");
+  }
+  const colonyAddress = extension.colony.id;
 
   const colonySubsquidId = `${colonyAddress.toLowerCase()}`;
-  const rootDomainSubsquidId = `${colonySubsquidId}_domain_1`;
   const oneTxPaymentSubsquidId = `${colonySubsquidId}_oneTxPayment_${args.nPayouts.toString()}_${args.fundamentalId.toString()}`;
   const paymentSubsquidId = `${colonySubsquidId}_payment_${args.fundamentalId.toString()}`;
 
@@ -37,16 +38,22 @@ export const handleOneTxPaymentMade = async (
   const transaction = await context.store.get(Transaction, { where: { id: log.transactionHash.toLowerCase() } });
   oneTxPayment.transaction = transaction;
 
-  const rootDomain = await context.store.get(Domain, { where: { id: rootDomainSubsquidId } });
-  const payment = await context.store.get(Payment, { where: { id: paymentSubsquidId } });
-  const chainPayment = await colonyContract.getPayment(payment?.paymentChainId || args.fundamentalId);
+  const payment = await context.store.get(Payment, { where: { id: paymentSubsquidId }, relations: { "domain": true }});
 
-  // for some reason the Payment object from the database doesn't return neither the domain or the colony props
-  // so we need to fetch the domain id from the chain directly and fetch the Domain object like that
-  const paymentDomain = await context.store.get(Domain, { where: { id: `${colonySubsquidId}_domain_${chainPayment.domainId.toString()}` } });
-
-  oneTxPayment.payment = payment;
-  oneTxPayment.domain = paymentDomain || rootDomain;
+  if (!payment && args.nPayouts.toString() === '1') {
+    throw new Error("Payment not known, but should be");
+  } 
+  
+  if (!payment) {
+    // Then this used an expenditure. We go to the chain to get the corresponding domain
+    const colonyContract = new ColonyContract(context, log.block, colonyAddress);
+    const expenditure = await colonyContract.getExpenditure(args.fundamentalId);
+    const domain = await context.store.get(Domain, { where: { id: `${colonySubsquidId}_domain_${expenditure.domainId.toString()}` } });
+    oneTxPayment.domain = domain;
+  } else {
+    oneTxPayment.payment = payment;
+    oneTxPayment.domain = payment.domain;
+  }
 
   await context.store.insert(oneTxPayment);
 };
