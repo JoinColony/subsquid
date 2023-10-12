@@ -1,1 +1,6 @@
 export const COLONY_NETWORK_ADDRESS = '0x5CC4a96B08e8C88f2c6FC5772496FeD9666e4D1F'.toLowerCase();
+
+export const PRELOAD_HEIGHT = 1;
+export const PRELOADED_COLONIES = [];
+export const PRELOADED_ONE_TX_PAYMENT = [];
+export const PRELOADED_VOTING_REPUTATION = [];

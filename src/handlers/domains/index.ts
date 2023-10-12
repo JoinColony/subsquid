@@ -108,8 +108,6 @@ export const handleDomainAdded = async (
 
   const args = event.args.toObject();
 
-  const colonyContract = new ColonyContract(context, log.block, log.address);
-
   /*
    * @TODO Properly fetch the domain count
    * As-is this won't work if multiple domains (within the same colony) are created
@@ -118,6 +116,7 @@ export const handleDomainAdded = async (
    */
   let domainChainId = args.domainId;
   if (!domainChainId) {
+    const colonyContract = new ColonyContract(context, log.block, log.address);
     domainChainId = await colonyContract.getDomainCount();
   }
 

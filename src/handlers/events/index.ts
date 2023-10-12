@@ -2,10 +2,10 @@ import { DataHandlerContext } from '@subsquid/evm-processor'
 import { Store } from '@subsquid/typeorm-store'
 import { Result } from 'ethers';
 
-import { Event, Block, Transaction, Colony, Domain } from '../../model'
+import { Event, Block, Transaction, Colony, Domain, ColonyExtension } from '../../model'
 import { Log } from '../../types';
 
-import { Contract as OneTxPaymentContract } from '../../abi/OneTxPayment';
+import { Contract as IColonyExtension } from '../../abi/IColonyExtension';
 
 import { getArbitraryReputationUpdateDomain } from '../domains';
 
@@ -62,12 +62,8 @@ export const handleEvent = async (
 
   event.domain = domain;
 
-  for (const [key, value] of Object.entries(args)) {
-    if (typeof value === 'bigint') {
-      args[key] = value.toString();
-    }
-  }
-  event.args = JSON.stringify(args);
+  // For some reason, not smart enough to stringify bigints themselves
+  event.args = JSON.stringify(args, (key: string, value: any) => typeof value === 'bigint' ? value.toString() : value);
 
   await context.store.insert(event);
 };
@@ -78,15 +74,14 @@ export const handleExtensionEvent = async (
   decodedLog: Result,
   eventName: string,
 ) => {
-  // For now, can be any extension contract
-  const extension = new OneTxPaymentContract(context, log.block, log.address);
-  const colony = await extension.getColony();
+  const extension = await context.store.get(ColonyExtension, { where: { id: log.address.toLowerCase() }, relations: {'colony': true }});
+  if (!extension) { return; }
 
   return handleEvent(
     context,
     log,
     decodedLog,
     eventName,
-    colony.toLowerCase(),
+    extension.colony.id
   );
 };
